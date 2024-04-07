@@ -40,4 +40,4 @@ Access Snowsight in your Snowflake console.
 Design and configure a dashboard to display key metrics and trends from your data.
 Implement filters for dynamic data exploration.
 Conclusion
-By the end of this tutorial, you will have a solid foundation in using Snowflake Snowpark for end-to-end data engineering tasks, from data loading to transformation and visualization, all within the Snowflake ecosystem.
+A brief about using snowpark API to complete an End-to-End ETL project
