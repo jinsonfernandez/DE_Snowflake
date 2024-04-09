@@ -1,31 +1,25 @@
 import os
-from snowflake.snowpark import Session
 import sys
 import logging
-from dotenv import load_dotenv
-import configparser
-import os
+from utils.connection import get_snowpark_session
 
-load_dotenv()  # Load environment variables from .env file
-config = configparser.ConfigParser()
-config.read(os.path.join(os.path.dirname(__file__), '..', 'config.ini'))
 
 # initiate logging at info level
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%I:%M:%S')
 
-# snowpark session
-def get_snowpark_session() -> Session:
-    connection_parameters = {
-        "ACCOUNT": config['SNOWFLAKE']['ACCOUNT'],
-        "USER": os.getenv("SNOWFLAKE_USER"),
-        "PASSWORD": os.getenv("SNOWFLAKE_PASSWORD"),
-        "ROLE": config['SNOWFLAKE']['ROLE'],
-        "DATABASE": config['SNOWFLAKE']['DATABASE'],
-        "SCHEMA": config['SNOWFLAKE']['SCHEMA'],
-        "WAREHOUSE": config['SNOWFLAKE']['WAREHOUSE']
-    }
-    # creating snowflake session object
-    return Session.builder.configs(connection_parameters).create()  
+# # snowpark session
+# def get_snowpark_session() -> Session:
+#     connection_parameters = {
+#         "ACCOUNT": config['SNOWFLAKE']['ACCOUNT'],
+#         "USER": os.getenv("SNOWFLAKE_USER"),
+#         "PASSWORD": os.getenv("SNOWFLAKE_PASSWORD"),
+#         "ROLE": config['SNOWFLAKE']['ROLE'],
+#         "DATABASE": config['SNOWFLAKE']['DATABASE'],
+#         "SCHEMA": config['SNOWFLAKE']['SCHEMA'],
+#         "WAREHOUSE": config['SNOWFLAKE']['WAREHOUSE']
+#     }
+#     # creating snowflake session object
+#     return Session.builder.configs(connection_parameters).create()  
 
 def traverse_directory(directory,file_extension) -> list:
     local_file_path = []
@@ -44,6 +38,7 @@ def traverse_directory(directory,file_extension) -> list:
 
 def main():
     # Specify the directory path to traverse
+    session = get_snowpark_session()
     directory_path = '/tmp/snowpark-e2e/'
     csv_file_name, csv_partition_dir , csv_local_file_path= traverse_directory(directory_path,'.csv')
     parquet_file_name, parquet_partition_dir , parquet_local_file_path= traverse_directory(directory_path,'.parquet')
@@ -54,7 +49,7 @@ def main():
     csv_index = 0
     for file_element in csv_file_name:
         put_result = ( 
-                    get_snowpark_session().file.put( 
+                    session.file.put( 
                         csv_local_file_path[csv_index], 
                         stage_location+"/"+csv_partition_dir[csv_index], 
                         auto_compress=False, overwrite=True, parallel=10)
@@ -66,7 +61,7 @@ def main():
     for file_element in parquet_file_name:
 
         put_result = ( 
-                    get_snowpark_session().file.put( 
+                    session.file.put( 
                         parquet_local_file_path[parquet_index], 
                         stage_location+"/"+parquet_partition_dir[parquet_index], 
                         auto_compress=False, overwrite=True, parallel=10)
@@ -78,7 +73,7 @@ def main():
     for file_element in parquet_file_name:
 
         put_result = ( 
-                    get_snowpark_session().file.put( 
+                    session.file.put( 
                         json_local_file_path[json_index], 
                         stage_location+"/"+json_partition_dir[json_index], 
                         auto_compress=False, overwrite=True, parallel=10)
